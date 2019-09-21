@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>xarm_ros_api</name>
+  <version>0.0.0</version>
+  <description>The xarm_ros_api package</description>
+
+  <maintainer email="t.sato17123@gmail.com">t_sato</maintainer>
+  <license>BSD</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>xarm_msgs</build_depend>
+  <build_depend>xarm_planner</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>xarm_msgs</build_export_depend>
+  <build_export_depend>xarm_planner</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>xarm_msgs</exec_depend>
+  <exec_depend>xarm_planner</exec_depend>
+
+  <export>
+  </export>
+</package>
