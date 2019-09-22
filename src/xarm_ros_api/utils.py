@@ -2,7 +2,7 @@
 import rospy
 import tf
 import moveit_commander
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseStamped
 from controller_manager_msgs.srv import ListControllers
 
 
@@ -10,7 +10,7 @@ def create_service(service_name, service_type, timeout=3.0):
     try:
         rospy.wait_for_service(service_name, timeout=timeout)
         return rospy.ServiceProxy(service_name, service_type)
-    except rospy.ServiceException, e:
+    except rospy.ServiceException as e:
         rospy.logerr(
             'Service [%s] is unavailable. %s' % (service_name, e))
     return None
@@ -34,7 +34,6 @@ def get_controller_dict(controller_manager_ns='controller_manager', including_nu
             continue
         controller_dict[state.name] = state.claimed_resources[0].resources
     return controller_dict
-
 
 def get_move_group_commander(name):
     robot = moveit_commander.RobotCommander(robot_description=rospy.get_namespace(

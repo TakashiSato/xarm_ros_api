@@ -10,12 +10,15 @@ from geometry_msgs.msg import Pose
 from moveit_msgs.srv import GetPositionFK
 from moveit_msgs.msg import RobotState
 from xarm_planner.srv import joint_plan, pose_plan, single_straight_plan, exec_plan
-from xarm_msgs.srv import SetDigitalIO
+from xarm_msgs.srv import SetDigitalIO, ClearErr, SetAxis, SetInt16
 
+from shape_msgs.msg import SolidPrimitive
 
 class XArmRosApi():
 
-    def __init__(self, move_group, sim):
+    def __init__(self, move_group, ee_link, sim):
+        self._sim = sim
+        self._ee_link = ee_link
         self.__create_publishers()
         self.__create_services(sim)
         self._arm = utils.get_move_group_commander(move_group)
@@ -29,7 +32,7 @@ class XArmRosApi():
             pubs[topic_name] = pub
 
         publisher_dict = {
-            'xarm_planner_exec': Bool
+            'xarm_planner_exec': Bool,
         }
 
         controller_pubs = {}
@@ -64,7 +67,11 @@ class XArmRosApi():
 
         if not sim:
             real_hw_service_dict = {
-                'xarm/set_digital_out' : SetDigitalIO
+                'xarm/clear_err' : ClearErr,
+                'xarm/set_digital_out' : SetDigitalIO,
+                'xarm/motion_ctrl' : SetAxis,
+                'xarm/set_mode' : SetInt16,
+                'xarm/set_state' : SetInt16,
             }
             service_dict.update(real_hw_service_dict)
 
@@ -81,18 +88,29 @@ class XArmRosApi():
         #               ((rospy.get_namespace() + service_name), json.dumps(srv_args)))
         return self._srvs[service_name](**srv_args)
 
-    # def servo_on(self, joint_names):
-    #     self.__call_set_joint_names_service('robot_hw/servo_on', joint_names)
+    def __call_real_hw_service(self, service_name, srv_args):
+        if self._sim:
+            return True
+        response = self.__call_service(service_name, srv_args)
+        return (response.ret == 0)
 
-    # def servo_off(self, joint_names):
-    #     self.__call_set_joint_names_service('robot_hw/servo_off', joint_names)
+    def enable(self, id):
+        return self.__call_real_hw_service('xarm/motion_ctrl', {'id': id, 'data': 1})
 
-    # def clear_error(self, joint_names):
-    #     self.__call_set_joint_names_service(
-    #         'robot_hw/clear_error', joint_names)
+    def disable(self, id):
+        return self.__call_real_hw_service('xarm/motion_ctrl', {'id': id, 'data': 0})
+
+    def clear_error(self):
+        return self.__call_real_hw_service('xarm/clear_err', {})
+
+    def set_mode(self, data):
+        return self.__call_real_hw_service('xarm/set_mode', {'data': data})
+
+    def set_state(self, data):
+        return self.__call_real_hw_service('xarm/set_state', {'data': data})
 
     def set_digital_io(self, io_num, value):
-        result = self.__call_service('xarm/set_digital_out', {'io_num': io_num, 'value': value})
+        return self.__call_real_hw_service('xarm/set_digital_out', {'io_num': io_num, 'value': value})
 
     def get_current_joint_positions(self):
         return self._arm.get_current_joint_values()
